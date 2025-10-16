@@ -38,6 +38,8 @@ console.log("initialisation.js is loading");
 let modelsReady = false;
 let videoReady = false;
 let firstDetection = false;
+// Current detected face expression ("Surprised", "Neutral", "Smiling", or "None")
+let currentFaceExpression = 'None';
 
 // ----=  Global functions  =----
 
@@ -144,6 +146,18 @@ function gotFaces(results) {
     if (results.length > 0 && !firstDetection) {
       firstDetection = true;
       console.log("First face detected!");
+    }
+    // Update global expression state based on first detected face
+    if (results.length > 0) {
+      try {
+        let expr = detectFaceExpression(results[0]);
+        if (expr) currentFaceExpression = expr;
+      } catch (e) {
+        // if detection logic errors, keep previous expression
+        console.error('Error detecting face expression:', e);
+      }
+    } else {
+      currentFaceExpression = 'None';
     }
   }
 }

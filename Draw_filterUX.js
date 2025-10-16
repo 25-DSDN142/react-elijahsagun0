@@ -1,17 +1,39 @@
 // ----=  HANDS  =----
-let halo;
-let rightHorn;
-let leftHorn;
 
-let angel = true;
+// Hat image
+let marioHat = null;
+let showHat = true;
+let hatX = 0;
+let hatY = 0;
+let hatScale = 1;
+let hatAngle = 0;
+const hatLerp = 0.25;
 
 function prepareInteraction() {
-  halo = loadImage('/images/Gemini_halo.png');
-  rightHorn = loadImage('/images/Gemini_horn1.png');
-  leftHorn = loadImage('/images/Gemini_horn2.png');
+  marioHat = loadImage('mariohat.png');
 }
-
+console.log("Faces detected:", faces.length);
 function drawInteraction(faces, hands) {
+
+  // --- set page background color driven by detected face expression ---
+  // (changes the website background, not the camera canvas)
+  let expr = (typeof currentFaceExpression !== 'undefined') ? currentFaceExpression : 'None';
+  try {
+    let bg = '#ffffff';
+    if (expr === 'Surprised') {
+      bg = '#ff6e6eff'; // light red
+    } else if (expr === 'Smiling') {
+      bg = '#FFD27A'; // warm orange
+    } else {
+      bg = '#ffffff';
+    }
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.style.transition = 'background-color 300ms ease';
+      document.body.style.backgroundColor = bg;
+    }
+  } catch (e) {
+    // ignore if not in browser
+  }
 
   // hands part
   // USING THE GESTURE DETECTORS (check their values in the debug menu)
@@ -29,13 +51,13 @@ function drawInteraction(faces, hands) {
     Start drawing on the hands here
     */
 
-    let whatGesture = detectHandGesture(hand)
-    if (whatGesture == "Thumbs Up") {
-      angel = true;
-    }
-    if (whatGesture == "Open Palm") {
-      angel = false;
-    }
+    // let whatGesture = detectHandGesture(hand)
+    // if (whatGesture == "Thumbs Up") {
+    //   angel = true;
+    // }
+    // if (whatGesture == "Open Palm") {
+    //   angel = false;
+    // }
 
     /*
     Stop drawing on the hands here
@@ -45,6 +67,9 @@ function drawInteraction(faces, hands) {
   //------------------------------------------------------------
   //facePart
   // for loop to capture if there is more than one face on the screen. This applies the same process to all faces. 
+  function draw() {
+  image(marioHat, 100, 100, 200, 100);
+}
   for (let i = 0; i < faces.length; i++) {
     let face = faces[i]; // face holds all the keypoints of the face
     if (showKeypoints) {
@@ -70,28 +95,44 @@ function drawInteraction(faces, hands) {
     let faceCenterX = face.faceOval.centerX;
     let faceCenterY = face.faceOval.centerY;
 
+    // expressions changes colour background
 
-    let hornWidth = faceWidth / 3;
-    let hornHeight = faceheight;
+        // --- MARIO HAT FILTER ---
+    if (showHat && marioHat && marioHat.width > 0) {
+      console.log("🧢 Attempting to draw Mario hat...");
 
-    let hornXOffset = faceWidth * 0.6;
-    let hornYOffset = faceheight * 1.5;
+      // anchor above forehead
+      let faceTopY = face.faceOval.centerY - (face.faceOval.height / 2);
+      let hatWidth = face.faceOval.width * 1.8;
+      let hatHeight = (marioHat.height / marioHat.width) * hatWidth;
 
-    if (angel) {
-      image(halo, face.keypoints[103].x, face.keypoints[103].y - 200)
+      let targetX = face.faceOval.centerX;
+      let targetY = faceTopY - hatHeight * 0.15; // adjust this if it's too high
+
+      hatX = lerp(hatX, targetX, hatLerp);
+      hatY = lerp(hatY, targetY, hatLerp);
+      hatScale = lerp(hatScale, hatWidth / marioHat.width, hatLerp);
+
+      push();
+      imageMode(CENTER);
+      translate(hatX, hatY);
+      image(marioHat, 0, 0, marioHat.width * hatScale, marioHat.height * hatScale);
+      pop();
+
+      console.log("✅ Mario hat drawn at:", hatX.toFixed(1), hatY.toFixed(1), "scale:", hatScale.toFixed(2));
     } else {
-      image(rightHorn, faceCenterX - hornXOffset, faceCenterY - hornYOffset, hornWidth, hornHeight) // imageName, x, y, imageWidth, imageHight
-      image(leftHorn, faceCenterX + hornXOffset - leftHorn.width, faceCenterY - hornYOffset, hornWidth, hornHeight) // imageName, x, y, imageWidth, imageHight
-
+      console.log("❌ Hat not drawn — showHat:", showHat, "marioHat:", marioHat, "width:", marioHat ? marioHat.width : "null");
     }
-    /*
-    Stop drawing on the face here
-    */
-
   }
-  //------------------------------------------------------
-  // You can make addtional elements here, but keep the face drawing inside the for loop. 
 }
+//     /*
+//     Stop drawing on the face here
+//     */
+
+//   }
+//   //------------------------------------------------------
+//   // You can make addtional elements here, but keep the face drawing inside the for loop. 
+// }
 
 
 function drawConnections(hand) {
