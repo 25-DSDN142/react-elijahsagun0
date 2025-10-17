@@ -14,6 +14,21 @@ let flowerPulse = 0;
 let flowerPulseSpeed = 0.05;
 let flowerColors = ['#FF6B6B', '#FFD166', '#6EE7B7', '#8AB4FF'];
 
+// Bear decoration state
+let bearX = 0;
+let bearY = 0;
+let bearScale = 1;
+const bearLerp = 0.18;
+
+// Mushroom & rainbow state
+let mushX = 60;
+let mushY = 60;
+let mushScale = 1;
+let mushLerp = 0.18;
+
+let rainbowPulse = 0;
+let rainbowPulseSpeed = 0.04;
+
 function prepareInteraction() {
   marioHat = loadImage('mariohat.png');
 }
@@ -155,7 +170,15 @@ function drawInteraction(faces, hands) {
   if (typeof currentFaceExpression !== 'undefined' && currentFaceExpression === 'Smiling') {
     // update pulse
     flowerPulse += flowerPulseSpeed;
-    drawCornerFlowers(width - 100, 80, 3, flowerPulse);
+    drawCornerFlowers(width - 100, 80, 2, flowerPulse);
+    // draw bear at bottom-right of the canvas
+  let targetBearX = 80; // bottom-left corner (padding from left)
+  let targetBearY = height - 80;
+    let targetBearScale = 8.0;
+    bearX = lerp(bearX, targetBearX, bearLerp);
+    bearY = lerp(bearY, targetBearY, bearLerp);
+    bearScale = lerp(bearScale, targetBearScale, bearLerp);
+    drawBear(bearX, bearY, 40 * bearScale);
   }
 }
 //     /*
@@ -195,4 +218,75 @@ function drawPoints(feature) {
   }
   pop()
 
+}
+
+// Draw multiple flowers in a cluster (x,y is cluster center)
+function drawCornerFlowers(x, y, count, t) {
+  push();
+  translate(x, y);
+  for (let i = 0; i < count; i++) {
+    let angle = i * TWO_PI / count + t * 0.3;
+    let rx = cos(angle) * (20 + i * 18);
+    let ry = sin(angle) * (8 + i * 10);
+    let scale = 0.8 + 0.15 * sin(t + i);
+    drawFlower(rx, ry, 300 * scale, flowerColors[i % flowerColors.length]);
+  }
+  // small center bloom
+  drawFlower(0, 0, 100 + 4 * sin(t), '#FFFFFF');
+  pop();
+}
+
+// Draw a simple stylized flower at (x,y) with radius r and color
+function drawFlower(x, y, r, col) {
+  push();
+  translate(x, y);
+  noStroke();
+  // petals
+  fill(col);
+  for (let p = 0; p < 6; p++) {
+    let a = p * TWO_PI / 6;
+    let px = cos(a) * r * 0.6;
+    let py = sin(a) * r * 0.6;
+    ellipse(px, py, r * 0.9, r * 0.55);
+  }
+  // center
+  fill('#FFDD66');
+  circle(0, 0, r * 0.8);
+  pop();
+}
+
+// Draw a simple stylized bear face at (x,y) with size s (diameter)
+function drawBear(x, y, s) {
+  push();
+  translate(x, y);
+  noStroke();
+  // body / face circle
+  fill('#C68642');
+  circle(0, 0, s);
+
+  // ears
+  fill('#C68642');
+  circle(-s * 0.35, -s * 0.45, s * 0.4);
+  circle(s * 0.35, -s * 0.45, s * 0.4);
+  fill('#8B5A2B');
+  circle(-s * 0.35, -s * 0.45, s * 0.22);
+  circle(s * 0.35, -s * 0.45, s * 0.22);
+
+  // snout
+  fill('#F5D6B1');
+  ellipse(0, s * 0.12, s * 0.6, s * 0.45);
+  fill('#6B3E1B');
+  circle(0, s * 0.12, s * 0.18);
+
+  // eyes
+  fill(20);
+  circle(-s * 0.18, -s * 0.05, s * 0.12);
+  circle(s * 0.18, -s * 0.05, s * 0.12);
+
+  // blush
+  fill('rgba(255,120,120,0.25)');
+  ellipse(-s * 0.34, 0, s * 0.25, s * 0.14);
+  ellipse(s * 0.34, 0, s * 0.25, s * 0.14);
+
+  pop();
 }
