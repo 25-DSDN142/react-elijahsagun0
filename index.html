@@ -6,10 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DSDN142-React</title>
   <style>
-    body {
-      padding: 0;
+    /* Make the page and canvas container fill the viewport and center content */
+    html, body {
+      height: 100%;
       margin: 0;
-      background-color: #1b1b1b;
+      padding: 0;
+    }
+
+    /* Body background left as white by inline style; this ensures centering */
+    body {
+      display: flex;
+      align-items: center; /* vertical center */
+      justify-content: center; /* horizontal center */
+      box-sizing: border-box;
+    }
+
+    /* Canvas container centers the canvas and constrains max width */
+    #canvasContainer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 1280px; /* adjust to your preferred maximum */
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    /* Make the p5 canvas responsive inside the container */
+    #canvasContainer canvas {
+      display: block;
+      max-width: 100%;
+      height: auto;
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.10/p5.js"></script>

@@ -9,6 +9,11 @@ let hatScale = 1;
 let hatAngle = 0;
 const hatLerp = 0.25;
 
+// Flower decoration state
+let flowerPulse = 0;
+let flowerPulseSpeed = 0.05;
+let flowerColors = ['#FF6B6B', '#FFD166', '#6EE7B7', '#8AB4FF'];
+
 function prepareInteraction() {
   marioHat = loadImage('mariohat.png');
 }
@@ -75,6 +80,8 @@ function drawInteraction(faces, hands) {
     if (showKeypoints) {
       drawPoints(face)
     }
+
+    
     // console.log(face);
     /*
     Once this program has a face, it knows some things about it.
@@ -95,34 +102,60 @@ function drawInteraction(faces, hands) {
     let faceCenterX = face.faceOval.centerX;
     let faceCenterY = face.faceOval.centerY;
 
+    
+
     // expressions changes colour background
 
         // --- MARIO HAT FILTER ---
     if (showHat && marioHat && marioHat.width > 0) {
-      console.log("🧢 Attempting to draw Mario hat...");
+      // Tilt-aware hat positioning using face landmarks
+      // Prefer using provided leftEye/rightEye; fall back to common keypoint indices
+      let leftEye = (face.leftEye && face.leftEye.centerX) ? face.leftEye : (face.keypoints[33] ? { centerX: face.keypoints[33].x, centerY: face.keypoints[33].y } : null);
+      let rightEye = (face.rightEye && face.rightEye.centerX) ? face.rightEye : (face.keypoints[263] ? { centerX: face.keypoints[263].x, centerY: face.keypoints[263].y } : null);
+      let nose = (face.nose && face.nose.x) ? face.nose : (face.keypoints[1] ? { x: face.keypoints[1].x, y: face.keypoints[1].y } : { x: face.faceOval.centerX, y: face.faceOval.centerY });
 
-      // anchor above forehead
+      // Compute tilt (roll) from eye line
+      let tiltAngle = 0;
+      if (leftEye && rightEye) {
+        tiltAngle = atan2(rightEye.centerY - leftEye.centerY, rightEye.centerX - leftEye.centerX);
+      }
+
+      // Yaw offset: nose x relative to face center
+      let faceCenterX = face.faceOval.centerX;
+      let yawOffsetPx = (nose.x - faceCenterX) || 0;
+
+      // Scale based on face width/height
+      let targetHatWidth = face.faceOval.width * 1.6; // tune multiplier for your hat graphic
+
+      // Position target: above forehead (use faceOval top)
       let faceTopY = face.faceOval.centerY - (face.faceOval.height / 2);
-      let hatWidth = face.faceOval.width * 1.8;
-      let hatHeight = (marioHat.height / marioHat.width) * hatWidth;
+      let targetX = face.faceOval.centerX + yawOffsetPx * 0.10; // small lateral shift for yaw
+      let targetY = faceTopY - (targetHatWidth * (marioHat.height / marioHat.width)) * 0.12; // slightly above forehead
 
-      let targetX = face.faceOval.centerX;
-      let targetY = faceTopY - hatHeight * 0.15; // adjust this if it's too high
-
+      // Smooth transitions
       hatX = lerp(hatX, targetX, hatLerp);
       hatY = lerp(hatY, targetY, hatLerp);
-      hatScale = lerp(hatScale, hatWidth / marioHat.width, hatLerp);
+      hatScale = lerp(hatScale, targetHatWidth / marioHat.width, hatLerp);
+      hatAngle = lerp(hatAngle || 0, tiltAngle, hatLerp);
 
-      push();
-      imageMode(CENTER);
-      translate(hatX, hatY);
-      image(marioHat, 0, 0, marioHat.width * hatScale, marioHat.height * hatScale);
-      pop();
-
-      console.log("✅ Mario hat drawn at:", hatX.toFixed(1), hatY.toFixed(1), "scale:", hatScale.toFixed(2));
+  // Draw rotated/scaled hat (flipped vertically to correct orientation)
+  push();
+  translate(hatX, hatY);
+  rotate(hatAngle);
+  // Flip vertically: scale Y by -1
+  scale(1, -1);
+  imageMode(CENTER);
+  image(marioHat, 0, 0, marioHat.width * hatScale, marioHat.height * hatScale);
+  pop();
     } else {
-      console.log("❌ Hat not drawn — showHat:", showHat, "marioHat:", marioHat, "width:", marioHat ? marioHat.width : "null");
+      // Hat not ready or disabled; silently continue
     }
+  }
+  // If smiling, draw corner flowers
+  if (typeof currentFaceExpression !== 'undefined' && currentFaceExpression === 'Smiling') {
+    // update pulse
+    flowerPulse += flowerPulseSpeed;
+    drawCornerFlowers(width - 100, 80, 3, flowerPulse);
   }
 }
 //     /*
