@@ -2,10 +2,45 @@
 /* load images here */
 function prepareInteraction() {
   //bgImage = loadImage('/images/background.png');
+   if (typeof document !== 'undefined') {
+    let bgText = document.getElementById('bgText');
+    if (!bgText) {
+      bgText = document.createElement('div');
+      bgText.id = 'bgText';
+      Object.assign(bgText.style, {
+        position: 'fixed',
+        inset: '0',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        pointerEvents: 'none',
+        zIndex: '-1',                // sits behind canvas; change if not visible
+        fontFamily: 'Inter, system-ui, sans-serif',
+        fontWeight: '800',
+        fontSize: '10vw',            // responsive size
+        color: 'rgba(0,0,0,0.06)',   // subtle text; change as needed
+        textTransform: 'lowercase',
+        letterSpacing: '0.02em',
+        transition: 'opacity 200ms ease',
+        opacity: '0',
+        mixBlendMode: 'normal'
+      });
+      bgText.innerText = 'ahhhh';
+      document.body.appendChild(bgText);
+    }
+  }
 }
 let isMouthOpen = false;
 
 function drawInteraction(faces, hands) {
+
+   if (typeof document !== 'undefined') {
+    let bgText = document.getElementById('bgText');
+    if (bgText) {
+      bgText.style.opacity = isMouthOpen ? '1' : '0';
+    }
+  }
+
 
   // for loop to capture if there is more than one face on the screen. This applies the same process to all faces. 
   for (let i = 0; i < faces.length; i++) {
@@ -31,7 +66,7 @@ function drawInteraction(faces, hands) {
     */
     checkIfMouthOpen(face);
     if (isMouthOpen) {
-      text("blah blah", face.keypoints[287].x, face.keypoints[287].y)
+      text("AHHHHHH", face.keypoints[287].x, face.keypoints[287].y)
     }
 
     /*
