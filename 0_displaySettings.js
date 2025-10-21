@@ -46,7 +46,7 @@ const flipVideo = true; // changes from mirror mode to standard video mode
 
 
 // global variables 
-let uiVisible = false;
+let uiVisible = true;
 let currentMode = 'hands';// this totally doesnt work  // 'hands', 'face', or 'both'
 let showDebugInfo = false;
 let showKeypoints = false;
